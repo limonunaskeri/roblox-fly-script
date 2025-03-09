@@ -1,0 +1,97 @@
+if not game or not game:GetService then
+    return
+end
+
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+local flyEnabled = false
+local flySpeed = 100
+local flyKey = Enum.KeyCode.F -- Standardtaste zum Aktivieren
+
+-- GUI erstellen
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "limonunaskeri"
+ScreenGui.Parent = game.CoreGui
+
+local Frame = Instance.new("Frame", ScreenGui)
+Frame.Size = UDim2.new(0, 200, 0, 100)
+Frame.Position = UDim2.new(0.8, 0, 0.2, 0)
+Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+Frame.BorderSizePixel = 2
+
+local SpeedLabel = Instance.new("TextLabel", Frame)
+SpeedLabel.Text = "Speed:"
+SpeedLabel.Size = UDim2.new(0, 50, 0, 20)
+SpeedLabel.Position = UDim2.new(0, 10, 0, 10)
+SpeedLabel.TextColor3 = Color3.new(1,1,1)
+SpeedLabel.BackgroundTransparency = 1
+
+local SpeedSlider = Instance.new("TextBox", Frame)
+SpeedSlider.Size = UDim2.new(0, 100, 0, 20)
+SpeedSlider.Position = UDim2.new(0, 60, 0, 10)
+SpeedSlider.Text = tostring(flySpeed)
+SpeedSlider.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+SpeedSlider.TextColor3 = Color3.new(1,1,1)
+
+local KeyLabel = Instance.new("TextLabel", Frame)
+KeyLabel.Text = "Key:"
+KeyLabel.Size = UDim2.new(0, 50, 0, 20)
+KeyLabel.Position = UDim2.new(0, 10, 0, 40)
+KeyLabel.TextColor3 = Color3.new(1,1,1)
+KeyLabel.BackgroundTransparency = 1
+
+local KeyInput = Instance.new("TextBox", Frame)
+KeyInput.Size = UDim2.new(0, 100, 0, 20)
+KeyInput.Position = UDim2.new(0, 60, 0, 40)
+KeyInput.Text = "F"
+KeyInput.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+KeyInput.TextColor3 = Color3.new(1,1,1)
+
+-- Fly Funktion
+local function toggleFly()
+    flyEnabled = not flyEnabled
+    if flyEnabled then
+        local bodyVelocity = Instance.new("BodyVelocity")
+        bodyVelocity.Velocity = Vector3.new(0, flySpeed, 0)
+        bodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+        bodyVelocity.Parent = humanoidRootPart
+    else
+        for _, obj in pairs(humanoidRootPart:GetChildren()) do
+            if obj:IsA("BodyVelocity") then
+                obj:Destroy()
+            end
+        end
+    end
+end
+
+-- Taste setzen
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed and input.KeyCode == flyKey then
+        toggleFly()
+    end
+end)
+
+-- Geschwindigkeit setzen
+SpeedSlider.FocusLost:Connect(function()
+    local newSpeed = tonumber(SpeedSlider.Text)
+    if newSpeed and newSpeed >= 0 and newSpeed <= 500 then
+        flySpeed = newSpeed
+    else
+        SpeedSlider.Text = tostring(flySpeed)
+    end
+end)
+
+-- Key setzen
+KeyInput.FocusLost:Connect(function()
+    local newKey = Enum.KeyCode[KeyInput.Text:upper()]
+    if newKey then
+        flyKey = newKey
+    else
+        KeyInput.Text = "F"
+    end
+end)
